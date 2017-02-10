@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "65988876803",
+    "firebase_url": "https://divinote-b8d9a.firebaseio.com",
+    "project_id": "divinote-b8d9a",
+    "storage_bucket": "divinote-b8d9a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:65988876803:android:2963db4809244364",
+        "android_client_info": {
+          "package_name": "com.rtu.uberv.divinote"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "65988876803-sg7jg84f0a8djugloks9n34s34fvc6k3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyNA8gxmJtryboka3SR5DEwJ0lkslTl3w"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "65988876803-sg7jg84f0a8djugloks9n34s34fvc6k3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

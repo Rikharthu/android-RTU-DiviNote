@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">DiviNote</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_license">License</string>
+    <string name="license">Created by:\nRichard Arman Kuodis\nId: 151RDB492</string>
+</resources>
