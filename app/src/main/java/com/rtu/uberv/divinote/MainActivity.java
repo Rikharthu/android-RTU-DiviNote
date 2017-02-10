@@ -16,19 +16,30 @@ import android.view.MenuItem;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.rtu.uberv.divinote.database.NotesDatabaseHelper;
 import com.rtu.uberv.divinote.models.Note;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
 
+    // constants
     private static final String TAG_LICENSE_DIALOG = "TAG_LICENSE_DIALOG";
+
+    // views
+
+    // members variables
+    NotesDatabaseHelper mNotesDatabaseHelper;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // initialize views:
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -51,22 +62,28 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 
-        // Write a message to the database
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("message");
+        // your logic:
 
-        myRef.setValue("Hello, World!");
-        myRef = database.getReference("notes");
+        // Write a message to the database
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference myRef = database.getReference("message");
+//
+//        myRef.setValue("Hello, World!");
+//        myRef = database.getReference("notes");
         Note note = new Note()
-                .setCompleted(true)
+                .setCompleted(false)
                 .setContent("Lorem ipsum porem")
                 .setTitle("Lorem!")
-                .setCreatedAt(System.currentTimeMillis())
-                .setId(Note.generateId());
-        if (note.getId() != null) {
-            myRef =database.getReference("notes/"+note.getId());
-            myRef.setValue(note);
-        }
+                .setCreatedAt(System.currentTimeMillis());
+//        if (note.getId() != null) {
+//            myRef = database.getReference("notes/" + note.getId());
+//            myRef.setValue(note);
+//        }
+
+        mNotesDatabaseHelper = NotesDatabaseHelper.getInstance(this);
+//        mNotesDatabaseHelper.addNote(note);
+        List<Note> notes = mNotesDatabaseHelper.getAllNotes();
+        Note noteFromDatabase= mNotesDatabaseHelper.getNote(1);
     }
 
     @Override

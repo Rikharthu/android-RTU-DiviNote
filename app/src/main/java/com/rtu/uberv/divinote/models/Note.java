@@ -18,7 +18,7 @@ public class Note {
     private boolean completed = false;
     private String title;
     private String content;
-    private String id;
+    private long id;
 
 
     public Note() {
@@ -31,11 +31,11 @@ public class Note {
         return "note_" + timestamp + "_v1";
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public Note setId(String id) {
+    public Note setId(long id) {
         this.id = id;
         return this;
     }
