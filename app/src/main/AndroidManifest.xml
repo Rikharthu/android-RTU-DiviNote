@@ -22,6 +22,21 @@
             android:name=".EditNoteActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity android:name=".NoteDaydreamSettingsActivity"/> <!-- This service is only used on devices with API v17+ -->
+        <service
+            android:name=".NoteDaydream"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
+            <!-- Point to additional information for this dream -->
+            <meta-data
+                android:name="android.service.dream"
+                android:resource="@xml/note_daydream_info"/>
+        </service>
     </application>
 
 </manifest>

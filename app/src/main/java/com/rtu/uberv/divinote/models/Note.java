@@ -3,9 +3,6 @@ package com.rtu.uberv.divinote.models;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Created by UberV on 2/9/2017.
- */
 
 public class Note {
 
