@@ -8,11 +8,14 @@ import android.view.Menu;
 public class EditNoteActivity extends AppCompatActivity {
     public static final String LOG_TAG=EditNoteActivity.class.getSimpleName();
 
+    public static final String KEY_NOTE="KEY_NOTE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_note);
+
+        // TODO different actions depending on intent arguments
 
         // Find the toolbar view inside the activity layout
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

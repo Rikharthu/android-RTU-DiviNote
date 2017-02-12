@@ -6,6 +6,7 @@ import java.util.Date;
 
 public class Note {
 
+    // TODO IMPLEMENT PARCELABLE
     // TODO add user identification
     // unix millis
     private long createdAt;
