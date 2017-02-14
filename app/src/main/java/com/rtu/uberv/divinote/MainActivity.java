@@ -1,5 +1,6 @@
 package com.rtu.uberv.divinote;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -20,6 +21,8 @@ import com.rtu.uberv.divinote.database.NotesDatabaseHelper;
 import com.rtu.uberv.divinote.models.Note;
 
 import java.util.List;
+
+import static com.rtu.uberv.divinote.EditNoteActivity.KEY_NOTE;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -49,6 +52,8 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                // start edit activity without Note object
+                startEditActivity(null);
             }
         });
 
@@ -84,6 +89,14 @@ public class MainActivity extends AppCompatActivity
 //        mNotesDatabaseHelper.addNote(note);
         List<Note> notes = mNotesDatabaseHelper.getAllNotes();
         Note noteFromDatabase= mNotesDatabaseHelper.getNote(1);
+        startEditActivity(note);
+    }
+
+    // pas null for new note or existing to edit
+    private void startEditActivity(Note note){
+        Intent intent = new Intent(MainActivity.this,EditNoteActivity.class);
+        intent.putExtra(KEY_NOTE,note);
+        startActivity(intent);
     }
 
     @Override

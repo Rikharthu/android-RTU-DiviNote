@@ -1,13 +1,13 @@
 package com.rtu.uberv.divinote.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Created by UberV on 2/9/2017.
- */
 
-public class Note {
+public class Note implements Parcelable {
 
     // TODO add user identification
     // unix millis
@@ -93,4 +93,45 @@ public class Note {
         this.remindAt = remindAt;
         return this;
     }
+
+    // PARCELABLE
+    protected Note(Parcel in) {
+        createdAt = in.readLong();
+        updatedAt = in.readLong();
+        remindAt = in.readLong();
+        completed = in.readByte() != 0x00;
+        title = in.readString();
+        content = in.readString();
+        id = in.readLong();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(createdAt);
+        dest.writeLong(updatedAt);
+        dest.writeLong(remindAt);
+        dest.writeByte((byte) (completed ? 0x01 : 0x00));
+        dest.writeString(title);
+        dest.writeString(content);
+        dest.writeLong(id);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Note> CREATOR = new Parcelable.Creator<Note>() {
+        @Override
+        public Note createFromParcel(Parcel in) {
+            return new Note(in);
+        }
+
+        @Override
+        public Note[] newArray(int size) {
+            return new Note[size];
+        }
+    };
+
 }
