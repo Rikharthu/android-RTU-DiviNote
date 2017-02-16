@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,28 +16,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.rtu.uberv.divinote.database.NotesDatabaseHelper;
 import com.rtu.uberv.divinote.models.Note;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.rtu.uberv.divinote.EditNoteActivity.KEY_NOTE;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, NoteRecyclerAdapter.ClickListener, NoteRecyclerAdapter.OnNoteDoneClickListener {
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     // constants
     private static final String TAG_LICENSE_DIALOG = "TAG_LICENSE_DIALOG";
 
     // views
+    RecyclerView mNotesRecyclerView;
 
     // members variables
     NotesDatabaseHelper mNotesDatabaseHelper;
+    List<Note> notes;
+    NoteRecyclerAdapter mNotesAdapter;
 
 
     @Override
@@ -45,6 +50,8 @@ public class MainActivity extends AppCompatActivity
         // initialize views:
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mNotesRecyclerView = (RecyclerView) findViewById(R.id.notes_recycler_view);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -79,23 +86,35 @@ public class MainActivity extends AppCompatActivity
                 .setCompleted(false)
                 .setContent("Lorem ipsum porem")
                 .setTitle("Lorem!")
+                .setRemindAt(System.currentTimeMillis() + 3000)
                 .setCreatedAt(System.currentTimeMillis());
 //        if (note.getId() != null) {
 //            myRef = database.getReference("notes/" + note.getId());
 //            myRef.setValue(note);
 //        }
 
+        notes = new ArrayList<>();
+        notes.add(note);
+        notes.add(note);
+        notes.add(note);
+        notes.add(note);
+        mNotesAdapter = new NoteRecyclerAdapter(notes, this);
+        mNotesAdapter.setOnItemClickListener(this);
+        mNotesAdapter.setOnNoteDoneClickListener(this);
+        mNotesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mNotesRecyclerView.setAdapter(mNotesAdapter);
+
         mNotesDatabaseHelper = NotesDatabaseHelper.getInstance(this);
 //        mNotesDatabaseHelper.addNote(note);
-        List<Note> notes = mNotesDatabaseHelper.getAllNotes();
-        Note noteFromDatabase= mNotesDatabaseHelper.getNote(1);
-        startEditActivity(note);
+//        List<Note> notes = mNotesDatabaseHelper.getAllNotes();
+//        Note noteFromDatabase= mNotesDatabaseHelper.getNote(1);
+//        startEditActivity(note);
     }
 
     // pas null for new note or existing to edit
-    private void startEditActivity(Note note){
-        Intent intent = new Intent(MainActivity.this,EditNoteActivity.class);
-        intent.putExtra(KEY_NOTE,note);
+    private void startEditActivity(Note note) {
+        Intent intent = new Intent(MainActivity.this, EditNoteActivity.class);
+        intent.putExtra(KEY_NOTE, note);
         startActivity(intent);
     }
 
@@ -162,5 +181,17 @@ public class MainActivity extends AppCompatActivity
     private void showLicense() {
         MessageDialogFragment licenseDialog = MessageDialogFragment.newInstance(getResources().getString(R.string.license));
         licenseDialog.show(getSupportFragmentManager(), TAG_LICENSE_DIALOG);
+    }
+
+    @Override
+    public void onItemClick(int position, View v) {
+        Log.d(LOG_TAG, "clicked: " + position);
+    }
+
+    @Override
+    public void onNoteDoneClick(int position, View v) {
+        Toast.makeText(this, position + " done.", Toast.LENGTH_SHORT).show();
+        notes.remove(position);
+        mNotesAdapter.notifyDataSetChanged();
     }
 }

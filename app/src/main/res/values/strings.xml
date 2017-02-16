@@ -11,4 +11,7 @@
     <string name="pref_dream_text_default">zzzZZZzzz</string>
     <string name="pref_dream_text_title">Ticker text</string>
     <string name="note_item_completed">Completed</string>
+    <string name="note_created_at_format">EEEE, MMMM d, yyy</string>
+    <string name="note_item_done">Done</string>
+    <string name="note_remind_at_format">MMMM dd, yyyy H:mm</string>
 </resources>
