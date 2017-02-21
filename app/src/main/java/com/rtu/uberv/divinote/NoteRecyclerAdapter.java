@@ -76,6 +76,8 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
     public static class NoteViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener {
 
+        public static final String TAG_NOTE_DONE="tag_note_done";
+
         TextView contentTv;
         TextView titleTv;
         TextView remindAtTv;
@@ -91,7 +93,7 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
             remindAtTv= (TextView) itemView.findViewById(R.id.note_item_remind_at_tv);
             createdAtTv= (TextView) itemView.findViewById(R.id.note_item_created_at_tv);
             noteDoneChk= (CheckBox) itemView.findViewById(R.id.note_item_completed_chk);
-            noteDoneChk.setTag("tag_note_done");
+            noteDoneChk.setTag(TAG_NOTE_DONE);
             noteDoneChk.setOnClickListener(this);
             itemView.setOnClickListener(this);
         }
@@ -99,7 +101,7 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
         @Override
         public void onClick(View v) {
             // TODO refactor probably
-            if(v.getTag()!=null && v.getTag().equals("tag_note_done")){
+            if(v.getTag()!=null && v.getTag().equals(TAG_NOTE_DONE)){
                 noteDoneClickListener.onNoteDoneClick(getAdapterPosition(),v);
             }else {
                 clickListener.onItemClick(getAdapterPosition(), v);

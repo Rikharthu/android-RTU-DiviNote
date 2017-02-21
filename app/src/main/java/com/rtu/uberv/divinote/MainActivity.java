@@ -190,8 +190,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onNoteDoneClick(int position, View v) {
-        Toast.makeText(this, position + " done.", Toast.LENGTH_SHORT).show();
-        notes.remove(position);
-        mNotesAdapter.notifyDataSetChanged();
+        Object viewTag = v.getTag();
+        if(viewTag!=null){
+            if(viewTag==NoteRecyclerAdapter.NoteViewHolder.TAG_NOTE_DONE){
+                Toast.makeText(this, position + " done.", Toast.LENGTH_SHORT).show();
+                notes.remove(position);
+                mNotesAdapter.notifyDataSetChanged();
+            }
+        }
     }
 }
