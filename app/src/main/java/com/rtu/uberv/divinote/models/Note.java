@@ -13,7 +13,7 @@ public class Note implements Parcelable {
     // unix millis
     private long createdAt;
     private long updatedAt;
-    private long remindAt;
+    private long remindAt=-1;
     // default - false
     private boolean completed = false;
     private String title;
