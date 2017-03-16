@@ -3,7 +3,7 @@ package com.rtu.uberv.divinote.database;
 
 import android.provider.BaseColumns;
 
-public final class NotesDatabaseContract {
+public final class DiviNoteDatabaseContract {
 
     // Database Info
     public static final int DATABASE_VERSION = 1;
@@ -12,7 +12,7 @@ public final class NotesDatabaseContract {
 
     // To prevent someone from accidentally instantiating the contract class,
     // make the constructor private.
-    private NotesDatabaseContract() {
+    private DiviNoteDatabaseContract() {
     }
 
     /* Inner class that defines the table contents */
@@ -29,17 +29,7 @@ public final class NotesDatabaseContract {
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_CONTENT = "content";
 
-        // Database Queries:
-        public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME +
-                " (" +
-                _ID + " INTEGER PRIMARY KEY," +             // define a primary key
-                COLUMN_NAME_CREATED_AT + " INTEGER," +
-                COLUMN_NAME_UPDATED_AT + " INTEGER," +
-                COLUMN_NAME_REMIND_AT + " INTEGER," +
-                COLUMN_NAME_COMPLETED + " INTEGER," +
-                COLUMN_NAME_TITLE + " TEXT," +
-                COLUMN_NAME_CONTENT + " TEXT" +
-                " )";
-        public static final String DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
+        public static final int TRUE = 1;
+        public static final int FALSE = 0;
     }
 }

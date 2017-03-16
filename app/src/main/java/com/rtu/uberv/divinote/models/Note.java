@@ -94,7 +94,21 @@ public class Note implements Parcelable {
         return this;
     }
 
-    // PARCELABLE
+    @Override
+    public String toString() {
+        return "Note{" +
+                "createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", remindAt=" + remindAt +
+                ", completed=" + completed +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", id=" + id +
+                '}';
+    }
+
+    // --- PARCELABLE ---
+
     protected Note(Parcel in) {
         createdAt = in.readLong();
         updatedAt = in.readLong();
