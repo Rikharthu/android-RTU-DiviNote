@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jakewharton.rxbinding2.view.RxView;
 import com.rtu.uberv.divinote.fragments.DatePickerFragment;
 import com.rtu.uberv.divinote.fragments.TimePickerFragment;
 import com.rtu.uberv.divinote.models.Note;
@@ -20,6 +21,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import timber.log.Timber;
 
 public class EditNoteActivity extends AppCompatActivity
         implements DatePickerFragment.OnDatePickedListener, TimePickerFragment.OnTimePickedListener {
@@ -37,27 +43,7 @@ public class EditNoteActivity extends AppCompatActivity
     private TextView mRemindAtTv;
     private Button mSaveBtn;
     private ImageButton mRemoveReminderBtn;
-    private View.OnClickListener mSaveBtnClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            // capture note state from views
-            Note tmpNote = new Note();
-            tmpNote.setTitle(mTitleEt.getText().toString());
-            tmpNote.setContent(mContentEt.getText().toString());
-            tmpNote.setUpdatedAt(System.currentTimeMillis());
-            // Todo validate
-            if (verifyNote(tmpNote)) {
-                note = tmpNote;
-                // save to db
-                // notify user
-                // move to main activity/result
-                Toast.makeText(EditNoteActivity.this, "Note has been saved!", Toast.LENGTH_SHORT).show();
-            } else {
-                // Notify user about errors
-                Toast.makeText(EditNoteActivity.this, "Please fix errors", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
+
     // Fields
     private Note note;
     private int year, month, day, hour, minute;
@@ -69,12 +55,38 @@ public class EditNoteActivity extends AppCompatActivity
         setContentView(R.layout.activity_edit_note);
 
         // TODO refactor view id names
-        mSaveBtn = (Button) findViewById(R.id.edit_note_save_btn);
-        mSaveBtn.setOnClickListener(mSaveBtnClickListener);
         mContentEt = (EditText) findViewById(R.id.noteContentEt);
         mTitleEt = (EditText) findViewById(R.id.noteTitleEt);
         mRemindAtTv = (TextView) findViewById(R.id.edit_note_remind_at_tv);
 
+        RxView.clicks(findViewById(R.id.edit_note_save_btn))
+                .map(new Function<Object, Note>() {
+                    @Override
+                    public Note apply(Object o) throws Exception {
+                        Note tmpNote = new Note();
+                        tmpNote.setTitle(mTitleEt.getText().toString());
+                        tmpNote.setContent(mContentEt.getText().toString());
+                        tmpNote.setUpdatedAt(System.currentTimeMillis());
+                        Timber.d("applying note "+tmpNote);
+                        return tmpNote;
+                    }
+                })
+                .filter(new Predicate<Note>() {
+                    @Override
+                    public boolean test(Note note) throws Exception {
+                        boolean isValid = verifyNote(note);
+                        Timber.d("filtering note, isValid="+isValid);
+                        return isValid;
+                    }
+                })
+                .subscribe(new Consumer<Note>() {
+                    @Override
+                    public void accept(Note note) throws Exception {
+                        Timber.d("note accepted");
+                        EditNoteActivity.this.note = note;
+                        // TODO save note here
+                    }
+                });
         pickDateIb = (ImageButton) findViewById(R.id.pickDateIb);
         pickDateIb.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,14 +151,14 @@ public class EditNoteActivity extends AppCompatActivity
             mRemoveReminderBtn.setVisibility(View.VISIBLE);
             DateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy hh:mm");
             mRemindAtTv.setText(dateFormat.format(new Date(note.getRemindAt())));
-        }else{
+        } else {
             mRemoveReminderBtn.setVisibility(View.GONE);
         }
         mTitleEt.setText(note.getTitle());
         mContentEt.setText(note.getContent());
     }
 
-    private void removeReminder(){
+    private void removeReminder() {
         note.setRemindAt(-1);
         displayNote(note);
     }
