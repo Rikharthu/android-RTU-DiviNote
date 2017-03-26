@@ -1,4 +1,4 @@
-package com.rtu.uberv.divinote.fragments;
+package com.rtu.uberv.divinote.ui;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;

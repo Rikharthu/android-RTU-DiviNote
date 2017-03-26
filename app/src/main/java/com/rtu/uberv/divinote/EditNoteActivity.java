@@ -1,5 +1,6 @@
 package com.rtu.uberv.divinote;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -12,9 +13,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jakewharton.rxbinding2.view.RxView;
-import com.rtu.uberv.divinote.fragments.DatePickerFragment;
-import com.rtu.uberv.divinote.fragments.TimePickerFragment;
+import com.jakewharton.rxbinding.view.RxView;
+import com.rtu.uberv.divinote.database.DiviNoteDAO;
+import com.rtu.uberv.divinote.ui.DatePickerFragment;
+import com.rtu.uberv.divinote.ui.TimePickerFragment;
 import com.rtu.uberv.divinote.models.Note;
 
 import java.text.DateFormat;
@@ -22,10 +24,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
+import rx.functions.Action1;
+import rx.functions.Func1;
 import timber.log.Timber;
+
 
 public class EditNoteActivity extends AppCompatActivity
         implements DatePickerFragment.OnDatePickedListener, TimePickerFragment.OnTimePickedListener {
@@ -59,11 +61,12 @@ public class EditNoteActivity extends AppCompatActivity
         mTitleEt = (EditText) findViewById(R.id.noteTitleEt);
         mRemindAtTv = (TextView) findViewById(R.id.edit_note_remind_at_tv);
 
+
         RxView.clicks(findViewById(R.id.edit_note_save_btn))
-                .map(new Function<Object, Note>() {
+                .map(new Func1<Object, Note>() {
                     @Override
-                    public Note apply(Object o) throws Exception {
-                        Note tmpNote = new Note();
+                    public Note call(Object o) {
+                        Note tmpNote = new Note(note);
                         tmpNote.setTitle(mTitleEt.getText().toString());
                         tmpNote.setContent(mContentEt.getText().toString());
                         tmpNote.setUpdatedAt(System.currentTimeMillis());
@@ -71,22 +74,34 @@ public class EditNoteActivity extends AppCompatActivity
                         return tmpNote;
                     }
                 })
-                .filter(new Predicate<Note>() {
+                .filter(new Func1<Note, Boolean>() {
                     @Override
-                    public boolean test(Note note) throws Exception {
+                    public Boolean call(Note note) {
                         boolean isValid = verifyNote(note);
                         Timber.d("filtering note, isValid="+isValid);
                         return isValid;
                     }
                 })
-                .subscribe(new Consumer<Note>() {
+                .subscribe(new Action1<Note>() {
                     @Override
-                    public void accept(Note note) throws Exception {
+                    public void call(Note note) {
                         Timber.d("note accepted");
-                        EditNoteActivity.this.note = note;
-                        // TODO save note here
+                        DiviNoteDAO dao = DiviNoteDAO.getInstance(EditNoteActivity.this);
+                        if(getIntent().getParcelableExtra(KEY_NOTE)==null){
+                            // create new note
+                            dao.addNote(note);
+                            Toast.makeText(EditNoteActivity.this, "Note created!", Toast.LENGTH_SHORT).show();
+                        }else{
+                            // update existing note
+                            dao.updateNoteById(note.getId(),note);
+                            Toast.makeText(EditNoteActivity.this, "Note updated!", Toast.LENGTH_SHORT).show();
+                        }
+                        Intent intent = new Intent(EditNoteActivity.this,MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
                     }
                 });
+
         pickDateIb = (ImageButton) findViewById(R.id.pickDateIb);
         pickDateIb.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -212,14 +227,6 @@ public class EditNoteActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(KEY_SAVED_NOTE, note);
         super.onSaveInstanceState(outState);
-    }
-
-    // Menu icons are inflated just as they were with actionbar
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
     }
 
     @Override

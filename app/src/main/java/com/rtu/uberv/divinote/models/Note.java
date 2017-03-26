@@ -24,6 +24,16 @@ public class Note implements Parcelable {
     public Note() {
     }
 
+    public Note(Note other){
+        createdAt=other.getCreatedAt();
+        updatedAt=other.getUpdatedAt();
+        remindAt=other.getRemindAt();
+        completed=other.completed;
+        title=other.title;
+        content=other.content;
+        id=other.id;
+    }
+
     // TODO move somewhere else
     public static String generateId() {
         // generate timestamp

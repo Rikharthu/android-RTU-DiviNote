@@ -1,11 +1,14 @@
 package com.rtu.uberv.divinote;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import timber.log.Timber;
 
 public class DiviNoteApplication extends Application {
+
+    private static Context sContext;
 
     @Override
     public void onCreate() {
@@ -15,6 +18,7 @@ public class DiviNoteApplication extends Application {
         } else {
             Timber.plant(new CrashReportingTree());
         }
+        sContext=getApplicationContext();
     }
 
     /**
@@ -37,5 +41,9 @@ public class DiviNoteApplication extends Application {
                 }
             }
         }
+    }
+
+    public static Context getAppContext(){
+        return sContext;
     }
 }

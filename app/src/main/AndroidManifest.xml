@@ -38,6 +38,13 @@
                 android:name="android.service.dream"
                 android:resource="@xml/note_daydream_info"/>
         </service>
+        
+        <provider
+            android:authorities="com.rtu.uberv.divinote"
+            android:name=".database.DiviNoteProvider"
+            android:exported="false"
+            android:syncable="true"
+            android:protectionLevel="signature"/>
     </application>
 
 </manifest>

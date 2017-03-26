@@ -1,10 +1,15 @@
 package com.rtu.uberv.divinote;
 
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,12 +19,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-import com.rtu.uberv.divinote.database.DiviNoteDatabaseDAO;
-import com.rtu.uberv.divinote.database.DiviNoteDatabaseHelper;
+import com.rtu.uberv.divinote.database.DiviNoteContract;
+import com.rtu.uberv.divinote.database.DiviNoteDAO;
 import com.rtu.uberv.divinote.models.Note;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 import static com.rtu.uberv.divinote.EditNoteActivity.KEY_NOTE;
 
@@ -31,10 +41,44 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG_LICENSE_DIALOG = "TAG_LICENSE_DIALOG";
 
     // views
+    private RecyclerView mNotesRecyclerView;
 
-    // members variables
-    private DiviNoteDatabaseDAO mNoteDatabaseDAO;
+    private DiviNoteDAO mNoteDatabaseDAO;
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+    private List<Note> mNotes;
+    private List<Note> mFilteredNotes;
+    private NotesFilter mNotesFilter = NotesFilter.All;
+    NoteRecyclerAdapter adapter;
+    private boolean isSearching = false;
+    private List<Note> mFoundNotes;
+    private SearchView mSearchView;
+    private String searchText;
+    private SearchView.OnQueryTextListener mListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            mSearchView.clearFocus();
+            return true;
+        }
 
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            searchText = newText.trim().toLowerCase();
+            isSearching = searchText.length() > 0;
+            mFoundNotes = new ArrayList<>();
+            for (Note note : mFilteredNotes) {
+                if (note.getTitle().toLowerCase().contains(searchText)
+                        || note.getContent().toLowerCase().contains(searchText)) {
+                    mFoundNotes.add(note);
+                }
+            }
+            adapter.setData(mFoundNotes);
+            adapter.notifyDataSetChanged();
+            return true;
+        }
+    };
+
+    public MainActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +88,7 @@ public class MainActivity extends AppCompatActivity
         // initialize views:
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mNotesRecyclerView = (RecyclerView) findViewById(R.id.notes_recycler_view);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -65,26 +110,132 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Note note = new Note()
-                .setCompleted(false)
-                .setContent("Lorem ipsum porem")
-                .setTitle("Lorem!")
-                .setCreatedAt(System.currentTimeMillis());
         //startEditActivity(note);
 
-        mNoteDatabaseDAO=DiviNoteDatabaseDAO.getInstance();
-        mNoteDatabaseDAO.addNote(note,this);
+        DiviNoteDAO dao = DiviNoteDAO.getInstance(this);
+        mNotes = dao.fetchAllNotes();
 
-        List<Note> notesFromDb=mNoteDatabaseDAO.getAllNotes(this);
-        for(Note n:notesFromDb){
-            Log.d(LOG_TAG,n.toString());
+        // test content provider
+//        ContentResolver cr = getContentResolver();
+//        Cursor cursor = cr.query(DiviNoteContract.NoteTable.CONTENT_URI, null, null, null, null);
+//        while (cursor.moveToNext()) {
+//            Note note = DiviNoteDAO.extractNoteFromCursor(cursor);
+//            Timber.d(note.toString());
+//        }
+
+        adapter = new NoteRecyclerAdapter(mNotes, this);
+        adapter.setOnNoteDoneClickListener(new NoteRecyclerAdapter.OnNoteDoneClickListener() {
+            @Override
+            public void onNoteDoneClick(int position, View v) {
+                Note note;
+                if (isSearching) {
+                    note = mFoundNotes.get(position);
+                } else {
+                    note = mFilteredNotes.get(position);
+                }
+                note.setCompleted(!note.isCompleted());
+                DiviNoteDAO.getInstance(MainActivity.this).updateNoteById(note.getId(), note);
+                updateData();
+                if (!isSearching) {
+                    updateUi();
+                } else {
+                    mListener.onQueryTextChange(searchText);
+                }
+            }
+        });
+        adapter.setOnNoteDeleteClickListener(new NoteRecyclerAdapter.OnNoteDeleteClickListener() {
+            @Override
+            public void onNoteDeleteClick(int position, View v) {
+                Note note;
+                if (isSearching) {
+                    note = mFoundNotes.get(position);
+                } else {
+                    note = mFilteredNotes.get(position);
+                }
+                note.setCompleted(!note.isCompleted());
+                DiviNoteDAO.getInstance(MainActivity.this).deleteNoteById(note.getId());
+                updateData();
+                if (!isSearching) {
+                    updateUi();
+                } else {
+                    // refresh search
+                    mListener.onQueryTextChange(searchText);
+                }
+            }
+        });
+        adapter.setOnItemClickListener(new NoteRecyclerAdapter.ClickListener() {
+            @Override
+            public void onItemClick(int position, View v) {
+                // Edit note
+                Note note;
+                if (isSearching) {
+                    note = mFoundNotes.get(position);
+                } else {
+                    note = mFilteredNotes.get(position);
+                }
+                startEditActivity(note);
+            }
+        });
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        mNotesRecyclerView.setLayoutManager(layoutManager);
+        mNotesRecyclerView.setAdapter(adapter);
+    }
+
+    private void updateUi() {
+        switch (mNotesFilter) {
+            case All:
+                getSupportActionBar().setTitle("All");
+                break;
+            case Incomplete:
+                getSupportActionBar().setTitle("Incomplete");
+                break;
+            case Complete:
+                getSupportActionBar().setTitle("Complete");
+                break;
+            case Reminders:
+                getSupportActionBar().setTitle("Reminders");
+                break;
+        }
+        adapter.setData(mFilteredNotes);
+        adapter.notifyDataSetChanged();
+    }
+
+    private void updateData() {
+        mNotes = DiviNoteDAO.getInstance(this).fetchAllNotes();
+        mFilteredNotes = new ArrayList<>();
+        for (Note note : mNotes) {
+            if (filterNote(note)) {
+                mFilteredNotes.add(note);
+            }
         }
     }
 
+    private boolean filterNote(Note note) {
+        switch (mNotesFilter) {
+            case All:
+                return true;
+            case Incomplete:
+                return note.isCompleted() == false;
+            case Complete:
+                return note.isCompleted() == true;
+            case Reminders:
+                return note.getRemindAt() > 0;
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateData();
+        updateUi();
+    }
+
     // pas null for new note or existing to edit
-    private void startEditActivity(Note note){
-        Intent intent = new Intent(MainActivity.this,EditNoteActivity.class);
-        intent.putExtra(KEY_NOTE,note);
+    private void startEditActivity(Note note) {
+        Intent intent = new Intent(MainActivity.this, EditNoteActivity.class);
+        intent.putExtra(KEY_NOTE, note);
         startActivity(intent);
     }
 
@@ -102,6 +253,9 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        mSearchView.setOnQueryTextListener(mListener);
         return true;
     }
 
@@ -129,18 +283,37 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_notes_all) {
+            mNotesFilter = NotesFilter.All;
+            updateData();
+            if (!isSearching) {
+                updateUi();
+            }
+        } else if (id == R.id.nav_notes_incomplete) {
+            mNotesFilter = NotesFilter.Incomplete;
+            updateData();
+            if (!isSearching) {
+                updateUi();
+            }
+        } else if (id == R.id.nav_notes_complete) {
+            mNotesFilter = NotesFilter.Complete;
+            updateData();
+            if (!isSearching) {
+                updateUi();
+            }
+        } else if (id == R.id.nav_notes_reminders) {
+            mNotesFilter = NotesFilter.Reminders;
+            updateData();
+            if (!isSearching) {
+                updateUi();
+            }
+        }
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        updateData();
+        if (!isSearching) {
+            updateUi();
+        } else {
+            mListener.onQueryTextChange(searchText);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -151,5 +324,9 @@ public class MainActivity extends AppCompatActivity
     private void showLicense() {
         MessageDialogFragment licenseDialog = MessageDialogFragment.newInstance(getResources().getString(R.string.license));
         licenseDialog.show(getSupportFragmentManager(), TAG_LICENSE_DIALOG);
+    }
+
+    private enum NotesFilter {
+        All, Complete, Incomplete, Reminders
     }
 }

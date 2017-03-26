@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="8dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="8dp"
     >
 
     <android.support.v7.widget.CardView
+        android:layout_margin="4dp"
+        android:elevation="10dp"
         android:id="@+id/device_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,13 +22,28 @@
             android:padding="16dp"
             >
 
-            <TextView
-                android:id="@+id/note_item_title_tv"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
-                tools:text="Title"
-                />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/note_item_title_tv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:textSize="20sp"
+                    tools:text="Title"/>
+
+                <ImageButton
+                    android:background="@null"
+                    android:id="@+id/note_item_delete_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:srcCompat="@android:drawable/ic_menu_delete"/>
+            </LinearLayout>
 
             <View
                 android:id="@+id/divider"
@@ -52,9 +66,9 @@
                     android:id="@+id/note_item_completed_chk"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/note_item_done"
+                    android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:layout_alignParentEnd="true"/>
+                    android:text="@string/note_item_done"/>
 
             </RelativeLayout>
 
@@ -71,7 +85,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
                 <ImageView
                     android:id="@+id/alarm_icon"
